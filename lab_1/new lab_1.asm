@@ -1,12 +1,15 @@
 .model small
 .stack 512
 
-.data
+.data 
 a dw 0
 b dw 0
 c dw 0
 d dw 0
-result   dw   0
+bufferD dw 0
+constant2 dw 2
+constant3 dw 3
+constant5 dw 5
 
 enterA db 'Enter a: $'
 enterB db 'Enter b: $'
@@ -34,7 +37,8 @@ maxlenD db 10
 actlenD db ?
 fldD db 10 dup('$')
 
-.code
+.code 
+
 makeIntend proc near
     lea dx, indent
     mov ah, 09
@@ -99,9 +103,9 @@ enterNum proc near
     mov si, 1                                          ;в SI множитель 
 
     @loopMet:
-    cmp cx,1
     push si                                            ;сохраняем SI (множитель) в стеке
     mov si, cx                                         ;в SI помещаем номер текущего символа 
+    cmp cx,1
     je @Signed
     @NoSigned:
     mov ax, [bx+si]                                    ;в AX помещаем текущий символ 
@@ -116,7 +120,6 @@ enterNum proc near
     mov si, ax                                         ;перемещаем множитель (AX) назад в SI
     loop @loopMet                                      ;переходим к предыдущему символу
     @return:
-    pop si
     call makeIntend
     ret
     @Signed:
@@ -124,19 +127,17 @@ enterNum proc near
     mov dx,[bx+si]
     xor dh,dh
     cmp dl,'-'
-    jne @NoSigned
     pop dx
-    pop si
+    jne @NoSigned
     neg di
+    pop si
     jmp @return
 enterNum endp
 
-main:
+start:
     mov ax,@data
     mov ds,ax
-    
-        xor ax,ax
-        xor dx,dx
+           
         lea dx, enterA                                  ;вводим а   
         mov ah, 09
         int 21h
@@ -146,31 +147,28 @@ main:
         lea bx, parA+1                                  ;в BX адрес второго элемента буфера
         call enterNum
         mov a, di
-
-        xor dx,dx
-        lea dx, enterB                                 ;вводим а   
+        
+        lea dx, enterB                                
         mov ah, 09
         int 21h
         lea dx, parB
         mov ah, 0Ah
         int 21h
-        lea bx, parB+1                                  ;в BX адрес второго элемента буфера
+        lea bx, parB+1                                  
         call enterNum
         mov b, di
 
-        xor dx,dx
-        lea dx, enterC                                 ;вводим а   
+        lea dx, enterC                               
         mov ah, 09
         int 21h
         lea dx, parC
         mov ah, 0Ah
         int 21h
-        lea bx, parC+1                                  ;в BX адрес второго элемента буфера
+        lea bx, parC+1                                  
         call enterNum
         mov c, di
 
-        xor dx,dx
-        lea dx, enterDD                                  
+        lea dx, enterDD                                
         mov ah, 09
         int 21h
         lea dx, parD
@@ -180,87 +178,93 @@ main:
         call enterNum
         mov d, di
 
-    
-    mov bx,b
-    mov cx,c
-
-    cmp bx,cx ; проверяю (b < c)
-    jl @FirstAns
-    jge @FirstCondition
-
-        @FirstCondition:                        ;  ((b * с) != (d - a))
-            mov ax,bx
-            imul cx
-            mov dx,d
-            mov cx,a
-            sub dx,cx
-            cmp ax,dx
-            jne @FirstAns
-            je @SecondCondition
-
-                @FirstAns:                      ;  (3 * a + b * (c - d))
-                   mov dx,d
-                   mov cx,c
-                   mov bx,b
-                   sub cx,dx
-                   mov ax,cx
-                   mul bx
-                   mov bx,ax
-                   mov ax,a
-                   add ax,a
-                   add ax,a
-                   add ax,bx
-                   call SIntToStr
-                   jmp @exit
-
-        @SecondCondition:                       ; (a < b)
-            mov ax,a
+            ; пошёл основной код
             mov bx,b
-            cmp ax,bx
-            jl @LowSecCondit
-            jge @ThirdAns
-        
-                @LowSecCondit:                  ;((a - d) < (b + c))
+            mov cx,c
+            cmp bx,cx         ;(b < c)
+            jl @FirstAnswer
+            jmp @FirstCondition
+
+                        @FirstAnswer:   ;print(3 * a + b * (c - d))
+                            mov dx,d
+                            mov cx,c
+                            sub cx,dx
+                            mov bx,b
+                            xchg ax,cx
+                            mul bx
+                            xchg ax,cx
+                            mov ax,a
+                            mul constant3
+                            add ax,cx
+                            call SIntToStr
+                            jmp @exit
+
+                @FirstCondition:     ;((b * с) != (d - a)) аккуратно, потому что после b * с регистр eax расширится до пары DX:AX
+                    mov ax,a
+                    mov bx,b
+                    mov cx,c
+                    mov dx,d
+                    sub dx,ax
+                    xchg dx,bufferD
+                    mov ax,bx
+                    mul cx
+                    cmp ax,bufferD
+                    jne @FirstAnswer
+                    je @SecondCondition
+                
+                @SecondCondition:     ; (a < b)
+                mov ax,a
+                mov bx,b
+                cmp ax,bx
+                jl @ThirdCondition
+                jge @ThirdAnswer
+
+                @ThirdCondition:    ;((a - d) < (b + c))
                     mov dx,d
                     mov cx,c
                     sub ax,dx
                     add bx,cx
                     cmp ax,bx
-                    jl @SecondAns
-                    jge @ThirdAns
+                    jl @SecondAnswer
+                    jge @ThirdAnswer
 
-                        @SecondAns:             ; (a * a - b + c) 
-                            mov ax,a
+                        @SecondAnswer: ; print(a * a - b + c)
+                        mov ax,a
+                        mov bx,b
+                        mov cx,c
+                        mul a
+                        add ax,cx
+                        sub ax,bx
+                        call SIntToStr
+                        jmp @exit
+
+                        @ThirdAnswer:    ; print(2 * b - 5 * d + 3)
                             mov bx,b
-                            mov cx,c
-                            mul ax
-                            add ax,cx
-                            sub ax,bx
-                            mov result,ax
+                            mov dx,d
+                            xchg dx,bufferD
+                            mov ax,bx
+                            mul constant2
+                            xchg ax,bufferD
+                            mul constant5
+                            xchg ax,bufferD
+                            add ax,3
+                            sub ax,bufferD
+                            call SIntToStr
                             jmp @exit
 
-                        @ThirdAns:              ; (2 * b - 5 * d + 3)
-                            mov bx,b
-                            mov ax,d
-                            mov si,5
-                            mul si
-                            mov dx,ax
-                            add bx,bx
-                            add bx,3
-                            sub bx,dx
-                            mov result,bx
-                            jmp @exit
-    
-    @exit:
-        mov ax,result
-        call SIntToStr
-        mov ah, 4ch
-        int   21h
-end main
-;if ((b * с) != (d - a)) or (b < c):        
-;    print(3 * a + b * (c - d))       FIRST ANS
+        @exit:
+            mov ah, 4ch
+            int   21h
+end start
+
+
+;if ((b * с) != (d - a)) or (b < c):
+;    print(3 * a + b * (c - d))
 ;else:
 ;    if ((a - d) < (b + c)) and (a < b):
-;        print(a * a - b + c)               SECOND ANS
-;    else:
-;        print(2 * b - 5 * d + 3)           THIRD ANS
+;       print(a * a - b + c)
+;   else:
+;       print(2 * b - 5 * d + 3)
+; При работе с регистрами AX DX требуется быть очень внимательными , так как применяя функции mul,div , регистр AX может с лёгкостью
+; превратиться в регистровую пару AX:DX => всё, что будет в DX затрётся
+; в случае умножения туда пойдут нули, в сучае деления в dl пойдёт остаток!!!!!!
