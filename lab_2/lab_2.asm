@@ -73,6 +73,7 @@ SIntToStr endp
 Numbers proc
     mov cx,N
     mov bx,N
+   
     @lp:
         mov ax,N
         xor bh,bh
@@ -84,8 +85,8 @@ Numbers proc
         add result,1
         @proceed:
         sub bl,1
-    
     loop @lp
+    
     cmp N,1
     je @check
     jne @skip
