@@ -5,22 +5,12 @@
 indent  db '', 0Dh, 0Ah, '$'
 enterString db 'Enter string: $'
 badInput db 'Bad input$'
-goodInput db 'Good input$'
-alphabet db 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 actLen dw 0
-
-
-
-
-cntForParse dw 52
-
 
 inputString label byte
 maxlenInput db 201
 actlenInput dw ?
 fldInput db 201 dup('$')
-
-
 
 outputString label byte
 maxlenOutput db 201
@@ -29,7 +19,7 @@ fldOutput db 201 dup('$')
 
 .code
 
-makeIntend proc near
+makeIntend proc near  ; отступ
     lea dx, indent
     mov ah, 09
     int 21h
@@ -48,8 +38,8 @@ searchSize proc near     ; Ищем размер введённой строки
         ret
 searchSize endp
 
-parse proc near
-    push ds    ; подготавливаем регистры для цепочечных команд
+parse proc near ; проверка на говно 
+    push ds    
     pop es
 
     push cx
@@ -71,8 +61,8 @@ parse proc near
     ret
 parse endp
 
-lettersSort proc near
-    push ds    ; подготавливаем регистры для цепочечных команд
+lettersSort proc near ; внешний цикл пузырька
+    push ds    
     pop es
 
     push cx
@@ -100,8 +90,8 @@ lettersSort proc near
     ret
 lettersSort endp
 
-help proc near
-    push ds    ; подготавливаем регистры для цепочечных команд
+help proc near ; сортировка сраным пузырём и то не оптимизированная
+    push ds    
     pop es
 
     push cx
@@ -114,12 +104,14 @@ help proc near
     mov cx , actLen
     mov bx , 2
     sub cx,1
+
     @lp2:
     mov al ,[ inputString + bx ]
     mov dl ,[ inputString + bx + 1 ]
     cmp al,dl
     jg @swap
     jl @continue
+
     @swap:
     xchg al,dl
     mov [inputString + bx] , al
@@ -161,14 +153,9 @@ parseHelp proc
     ret
 parseHelp endp
 
-
-; буду брать один символ из алфавита Сначала самые маленькие, потом самые большие, потом искать его в строке входной, если он есть , то записываю его 
-; в строку выходную, а во входной на его месте ставлю ноль
 start:
     mov ax,@data
     mov ds,ax
-        
-        
 
         lea dx, enterString                                 ; Ввод строки   
         mov ah, 09
@@ -209,9 +196,3 @@ start:
         int   21h
 
 end start
-
-; Ввести строку со случайным числом пробелов и вывести слово наибольшей длины  
-; В коде я буду просто идти по строке Брать первый символ сравнивать с остальными и добавлять наименьший в выходную строку.
-;
-;
-;
