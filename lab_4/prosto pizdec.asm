@@ -4,6 +4,7 @@
 .data 
 indent  db '', 0Dh, 0Ah, '$'
 enterString db 'Enter string: $'
+alphabet db 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
 badInput db 'Bad input$'
 actLen dw 0
 
@@ -143,7 +144,7 @@ parseHelp proc
     mov cx, 52
     cld
     mov al ,[ inputString + bx] ; +2 это переход ИМЕННО к началу строки. Далее +3 это уже ко второму символу
-    lea di, alphabet
+    lea di, alphabet 
     repnz scasb
     jnz @BadInput    ; если не найден
 
@@ -173,13 +174,6 @@ start:
 
         call lettersSort
         jmp @PrintAns
-        jmp @exit
-
-
-@gdImpt:
-        lea dx, goodInput
-        mov ah,09
-        int 21h 
         jmp @exit
 
 @BadInput:
