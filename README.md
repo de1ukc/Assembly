@@ -1,2 +1,2 @@
 # Assembly
-This is gonna be the hardest language(i suess)
+This is gonna be the hardest language(iguess)
