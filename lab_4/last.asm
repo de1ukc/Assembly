@@ -15,9 +15,6 @@ enterM db 'Enter m: $'
 enterNumber db 'Enter number: $'
 indent  db '', 0Dh, 0Ah, '$'
 
-
-
-
 matrix dw 10000 dup(0)
 
 ; НИЖЕ - ДЛЯ ВВОДА
@@ -36,7 +33,6 @@ Buffer label byte
 maxlenBuffer db 5
 actlenBuffer db ?       
 fldBuffer db 5 dup('$')
-
 
 .code 
 
@@ -71,7 +67,6 @@ pop ax
 ret
 UintToStr endp
 
-
 SIntToStr proc 
 push ax ; сохраняем наше число
 test ax,ax ; проверяем знак ax
@@ -87,7 +82,6 @@ call UintToStr
 pop ax
 ret
 SIntToStr endp
-
 
 makeIntend proc near
     lea dx, indent
@@ -151,7 +145,6 @@ raws proc near
         xor bx,bx
         xor di,di
         
-        
         push cx
         lea dx, enterNumber                                  
         mov ah, 09
@@ -173,7 +166,6 @@ raws proc near
         inc i
         call makeIntend
         pop cx
-
     loop @lp2
 
     pop di
@@ -213,7 +205,6 @@ Raw proc
     inc j
     loop @lpTask
     add sum , ax
-
 
     pop di
     pop cx
@@ -331,46 +322,40 @@ start:
     mov ax,@data
     mov ds,ax
 
-        lea dx, enterN                                 ;вводим а   
+        lea dx, enterN                                  
         mov ah, 09
         int 21h
         lea dx, parN
         mov ah, 0Ah
         int 21h
-        lea bx, parN+1                                  ;в BX адрес второго элемента буфера
+        lea bx, parN+1                                  
         call enterNum
         call makeIntend
         mov n , di
           
-        lea dx, enterM                                  ;вводим а   
+        lea dx, enterM                                    
         mov ah, 09
         int 21h
         lea dx, parM
         mov ah, 0Ah
         int 21h
-        lea bx, parM+1                                  ;в BX адрес второго элемента буфера
+        lea bx, parM+1                                  
         call enterNum
         call makeIntend
         mov m , di
 
-        call help
+        call help    ; ввод и занесение всего в матрицу
 
         call ans
 
+        @printAns:
         mov ax,sum
         call SIntToStr
-
 
         @exit:
             mov ah, 4ch
             int   21h
 end start
-
-
-;lea di , wtf
-;mov al , [di + 1 ]  ; получаю именно одну букву из строки, т.е. один символ
-; сравнивать посимвольно, пока не нашёл, заносить в di , когда нашёл, переводить это в число и заносить в массив
-; двумя цепочечными командами
 
 ; Лабораторная 4 . Вариант 4
 ; Необходимо определить минимальное значение для каждой строки и каждого столбца матрицы. В качестве результата вычислите сумму полученных значений.
