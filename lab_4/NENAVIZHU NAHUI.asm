@@ -5,20 +5,19 @@
 n dw 0
 m dw 0
 actLen dw 0
-cnt dw 0
-cnt2 dw 0
 buffLen dw 0
 
-wtf db 'wtf$'
 enterN db 'Enter n: $'
 enterM db 'Enter m: $'
 indent  db '', 0Dh, 0Ah, '$'
 space db ' $'
+symb db '!'
 end db '$'
 
-
-
 matrix db 10000 dup('$')
+
+help1 dw 0
+help2 dw 0
 
 
 
@@ -37,55 +36,35 @@ fldM db 4 dup('$')
 Raw label byte  
 maxlenRaw dw 401 
 actlenRaw dw ?        
-fldRaw db 401 dup('$')   
+fldRaw db 401 dup('$')
 
-buffer db 6 dup('$')
+Buffer label byte  
+maxlenBuffer db 5
+actlenBuffer db ?       
+fldBuffer db 5 dup('$')
+
+buffer2 db 6 dup('$')
 
 .code 
 
 searchSize proc near     ; Ищем размер введённой строки
-        push cx
-
-        lea bx, Raw+1    
+        push cx   
         mov cx, [bx] 
         xor ch, ch
         mov actLen,cx
-        
         pop cx
         ret
 searchSize endp
 
- searchSizeBuff proc near
-    push ds    
-    pop es
 
-    mov buffLen,0
-    push cx
-    push ax
-    push di
-    push bx
-    xor cx,cx
-    xor ax,ax
-    xor di,di
-    xor bx,bx
-
-    mov cx , 5
-    lea di,buffer 
-    @pupa:
-    lea si , end      ; разделитель
-    cmpsb
-    je @bb
-    inc buffLen
-    loop @pupa
-    ;mov cx , buffLen
-    
-    @bb:
-    pop bx
-    pop di
-    pop ax
-    pop cx
-    ret
- searchSizeBuff endp
+searchSizeBuff proc near     ; Ищем размер введённой строки
+        push cx   
+        mov cx, [bx] 
+        xor ch, ch
+        mov actlenBuffer,cl
+        pop cx
+        ret
+searchSizeBuff endp
 
 makeIntend proc near
     lea dx, indent
@@ -93,43 +72,6 @@ makeIntend proc near
     int 21h
     ret
 makeIntend endp
-
-enterNum1 proc near
-    mov di, 0           
-    mov cx, buffLen                                     ;в CX количество введенных символов
-    xor ch, ch
-    mov si, 1                                          ;в SI множитель 
-
-    @loopMet1:
-    push si                                            ;сохраняем SI (множитель) в стеке
-    mov si, cx                                         ;в SI помещаем номер текущего символа 
-    cmp cx,1
-    je @Signed1
-    @NoSigned1:
-    mov ax, [bx+si]                                    ;в AX помещаем текущий символ 
-    xor ah, ah
-    pop si                                             ;извлекаем множитель (SI) из стека
-    sub ax, 30h                                        ;получаем из символа (AX) цифру
-    mul si                                             ;умножаем цифру (AX) на множитель (SI)
-    add di, ax                                         ;складываем с результирующим числом
-    mov ax, si                                         ;помещаем множитель (SI) в AX
-    mov dx, 10
-    mul dx                                             ;увеличиваем множитель (AX) в 10 раз
-    mov si, ax                                         ;перемещаем множитель (AX) назад в SI
-    loop @loopMet1                                      ;переходим к предыдущему символу
-    @return1:
-    ret
-    @Signed1:
-    push dx
-    mov dx,[bx+si]
-    xor dh,dh
-    cmp dl,'-'
-    pop dx
-    jne @NoSigned1
-    neg di
-    pop si
-    jmp @return1
-enterNum1 endp
 
 enterNum proc near
     mov di, 0           
@@ -168,161 +110,168 @@ enterNum proc near
     jmp @return
 enterNum endp
 
+enterNum1 proc near
+    mov di, 0           
+    mov cx, buffLen                                    ;в CX количество введенных символов
+    xor ch, ch
+    mov si, 1                                          ;в SI множитель 
 
-parse proc near    ;парс строки
-    mov cnt , 0
-    mov cnt2 , 0
-    
-    push ds    
-    pop es
-    
-    push cx
-    push ax
-    push di
-    push bx
-    xor cx,cx
-    xor ax,ax
-    xor di,di
-    xor bx,bx
-
-    call searchSize        ; ищем реальную длину входной строки, а не количество цифр
-    mov cx, actLen         ; количество символов строки
-    lea di , Raw + 2   ; это сама введённая строка
-    
-    @lpParse:           
-    lea si , space      ; разделитель
-    cmpsb               ; если не попали на разделитель , то пойдём записывать наш символ в буфер
-    je @proceed
-    
-    @oneSymb:       ; запишем один наш символ в буффер
-    inc cnt         ; будем потом домнажать на это число при вставке числа с помощью регистра di и цепочечной команды
-    dec di           ; Откатываюсь на символ назад, т.е. на нужный мне символ
-    mov al, [di]
-    inc di            ; возвращаю всё для компилятора
-
-    push di
-    xor di,di
-    lea di , [buffer]
-
-    push cx
-    mov cx,cnt
-    sub cx,1
-    test cx,cx
-    jz @skip11p
-    @stpdlp:
-    inc di
-    loop @stpdlp
-    @skip11p:
-    pop cx
-    stosb
-    pop di
-    jmp @exitfromcicle
-
-    @proceed:
-    inc cnt2
-    push si
-    push cx
-    push ax
-    push di
-    push bx
-
-    xor cx,cx
-    xor ax,ax
-    xor di,di
-    xor bx,bx
-
-    call searchSizeBuff
-    cmp buffLen,1
-    call enterNum1 ; работает неверно
-    mov ax,[di]
-    
-    push di
-    xor di,di
-    lea di , matrix
-    push cx
-    xor cx,cx
-    mov cx , cnt2
-    sub cx,1
-    test cx, cx
-    jz @skip12p
-    @stpdlp2:
-    inc di
-    loop @stpdlp2
-    @skip12p:
-    pop cx
-    stosb
-    pop di
-    
-    
-    pop bx
-    pop di
-    pop ax
-    pop cx
+    @loopMet:
+    push si                                            ;сохраняем SI (множитель) в стеке
+    mov si, cx                                         ;в SI помещаем номер текущего символа 
+    cmp cx,1
+    je @Signed
+    @NoSigned:
+    mov ax, [bx+si]                                    ;в AX помещаем текущий символ 
+    xor ah, ah
+    pop si                                             ;извлекаем множитель (SI) из стека
+    sub ax, 30h                                        ;получаем из символа (AX) цифру
+    mul si                                             ;умножаем цифру (AX) на множитель (SI)
+    add di, ax                                         ;складываем с результирующим числом
+    mov ax, si                                         ;помещаем множитель (SI) в AX
+    mov dx, 10
+    mul dx                                             ;увеличиваем множитель (AX) в 10 раз
+    mov si, ax                                         ;перемещаем множитель (AX) назад в SI
+    loop @loopMet                                      ;переходим к предыдущему символу
+    @return:
+    ret
+    @Signed:
+    push dx
+    mov dx,[bx+si]
+    xor dh,dh
+    cmp dl,'-'
+    pop dx
+    jne @NoSigned
+    neg di
     pop si
-    
-    
+    jmp @return
+enterNum1 endp
 
-
-
-
-   push di
-   push cx
-   lea   di, buffer
-   mov   cx, 5
-   mov   al,' '           ;пробел
-   rep   stosb            ;отправляем СХ-пробелов по адресу ES:DI
-   pop cx
-   pop di
-
-    @exitfromcicle:
-    
-    loop @lpParse
-    
-    jmp @exitFromFunc
-    @exitFromFunc:
-    pop bx
-    pop di
-    pop ax
-    pop cx
-    ret
-parse endp
-
-matrixLoad1 proc near
+help proc near
     push ds    
     pop es
 
+    lea di , Raw + 2
+    lea bx , Raw + 1
+    call searchSize      
+    mov cx, actLen            ; нашёл количество символов введённой строки
+
+    @SymbolsLoop:
+    lea si,space          ; каждый раз помещаю в источник разделитель
+    cmpsb
+    ;je @ToMatrix
+    jne @ToBuffer
+
+    @NextIteration:
+    loop @SymbolsLoop
+    jmp @bb
+
+    @ToBuffer:
+    inc help1
+    push di
     push cx
     push ax
-    push di
-    push bx
-
-    xor cx,cx
     xor ax,ax
+    xor cx,cx      
+
+                
+
+    dec di
+    mov al , [di]    ; засунул символ в регистр
+    inc di
     xor di,di
-    xor bx,bx
 
-    mov cx, n
-    @byRaws:
-        lea dx, Raw                 ; ввод строки матрицы
-        mov ah, 0Ah
-        int 21h
-        lea bx, Raw+1
-        call makeIntend
-        call parse
-    
-    loop @byRaws
+    lea di , [buffer2]
+    mov cx , help1
+    sub cx , 1
+    test cx,cx
+    jz @skip1
+    @lp1:
+    inc di
+    loop @lp1
+    @skip1:
+    stosb    
+                                    lea si, buffer2        
+                        lea di, Buffer 		   
+                        mov cx, 5          
+                        cld                  
+                        rep movsb   
+                        mov cl , actlenBuffer
 
-    pop bx
-    pop di
+                        xor bx,bx
+                        lea bx , buffer + 1
+                        call searchSizeBuff
+                        mov cl , actlenBuffer
+
+                        lea dx, buffer
+                        mov ah, 09 
+                        int 21h
+
+                        lea dx, symb
+                         mov ah, 09
+                        int 21h
     pop ax
     pop cx
-    ret
-matrixLoad1 endp
+    pop di
 
+    jmp @NextIteration
+
+    @ToMatrix:       ; неверно работает 
+    inc help2
+
+
+    push cx
+    push di
+    push ax
+    push si
+    
+    xor ax,ax
+    xor si,si
+
+    
+
+    lea bx , Buffer + 1
+    call enterNum
+    mov al , [di]
+    lea di , matrix
+
+    stosb
+
+    lea   di, Buffer
+    mov   cx, 5
+    mov   al,'$'           ;пробел
+    rep   stosb            ;отправляем СХ-пробелов по адресу ES:DI
+    pop cx
+    pop di
+
+    pop si
+    pop ax
+    pop di
+    pop cx
+    jmp @NextIteration
+    
+    @bb:
+    ret
+help endp
 
 start:
     mov ax,@data
     mov ds,ax
+
+        lea dx, Raw
+        mov ah, 0Ah
+        int 21h
+
+        call makeIntend
+
+        call help
+
+       ; lea dx , matrix
+       ; mov ah, 09
+       ; int 21h
+
+        jmp @exit
+        
 
         lea dx, enterN                                 ;вводим а   
         mov ah, 09
@@ -346,19 +295,21 @@ start:
         call makeIntend
         mov m , di
 
-        cmp n,2
-        cmp m,2
+        
+        
+        
+        ;call help
 
-
-        call matrixLoad1
-
-        ;lea dx,buffer
-       ; mov ah, 09
+        ;lea dx, buffer                                 
+        ;mov ah, 09
         ;int 21h
 
-        lea dx, matrix
-        mov ah, 09
-        int 21h 
+        ;call makeIntend
+
+       ; lea dx, matrix                                  ; проверяем матрицу  
+        ;mov ah, 09
+       ; int 21h
+
 
         @exit:
             mov ah, 4ch
