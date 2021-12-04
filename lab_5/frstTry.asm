@@ -11,6 +11,7 @@ shiftValue db 13
 transferValue db 0
 enterShiftttt db 'Enter shift:$'
 alphabet db 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+zSymb db 'z$'
 
 Symbol label byte  
 maxlenSymbol db 11
@@ -126,43 +127,39 @@ enterNum endp
 shift proc far 
     push ax
     push bx
-
     xor ax,ax
-    
-    ;push cx 
-   ; push bx
-   ; push di
-   ; lea di, alphabet 
-  ;      mov cx, 36
-  ;      mov bx , 0
-   ;     @stpd:
-  ;      cmp al , [alphabet + bx]
-  ;      jz @bb
-  ;      inc bx
-  ;      loop @stpd
+    mov al , [si]   ; засовываю символ в регистр
 
-  ;      jmp @skipskip
-        
-  ;      @bb:
-  ;      pop di
-  ;      pop bx
-  ;      pop cx
-  ;  jmp @skipTransfer
-  ;  @skipskip:
-  ;  xor ax,ax
+    push di
+    push ax
+    push cx
+    push bx
+    mov cx , 36
+    mov bx,0
+    @ALPA:
+    lea di, [alphabet + bx]
+    inc bx
+    cmp al , [di]
+    jz @bb
+    loop @ALPA
+    pop bx
+    pop cx
+    pop ax
+    pop di
+    
+
+    @vseStrochie:
+    xor ax,ax
     mov al , [si]   ; засовываю символ в регистр
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; тут будет происходить сдвиг;
     cmp shiftValue,0
     jl @minus
     add al , shiftValue         ; для положительного смещения
-    cmp al , 7Ah
-    jl @skipTransfer
-    sub al , shiftValue
-    mov transferValue, al
-    mov al , shiftValue
-    add transferValue, al
-    sub transferValue,7Ah
+    cmp al , zSymb
+    jb @skipTransfer
+    sub al , 7Ah
+    mov transferValue , al
     mov al , 61h
     sub transferValue , 1
     add al, transferValue
@@ -172,16 +169,23 @@ shift proc far
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     @skipTransfer:
-    mov [di],al
+    mov [di],ax
     
-    lea dx , output
-        mov ah,09
-        int 21h
+   ; lea dx , output
+   ;     mov ah,09
+   ;     int 21h
 
     inc di
     pop bx
     pop ax
     iret
+
+    @bb:
+    pop bx
+    pop cx
+    pop ax
+    pop di
+    jmp @skipTransfer
 shift endp
 
 withoutShift proc far
@@ -317,8 +321,8 @@ start:
         lea si , Symbol + 2 ; вычислять после каждого ввода
         call makeIntend
         
-        ;call whatToDo
-        call shift
+        call whatToDo
+
         loop @lp
 
         @exit:
@@ -337,3 +341,6 @@ end start
 ;	ввод X -> на экране dcX
 ;	ввод 1 -> на экране dcX1
 ;	При повторном выполнении команды обработчик должен быть снят.
+
+; Сначала вводим MYPROGRAM 
+; потом уже символы
