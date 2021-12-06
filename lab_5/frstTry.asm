@@ -12,6 +12,7 @@ transferValue db 0
 enterShiftttt db 'Enter shift:$'
 alphabet db 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 zSymb db 'z$'
+cnt dw 0
 
 Symbol label byte  
 maxlenSymbol db 11
@@ -165,15 +166,33 @@ shift proc far
     add al, transferValue
     jmp @skipTransfer
     @minus:
+    push bx
+    
+    xor bx,bx
+    mov bl , 'a'
+    sub al , bl
+    mov bl , shiftValue
+    neg bl
+    cmp al , bl
+    jg @isGood
+    mov bl , shiftValue
+    add bl , al
+    mov al , 'z'
+    add al,bl
+    add al , 1
+    @isGood:
+    pop bx
+    jmp @skipTransfer
+
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
     @skipTransfer:
-    mov [di],ax
+    mov [di],al
     
-   ; lea dx , output
-   ;     mov ah,09
-   ;     int 21h
+    lea dx , output
+        mov ah,09
+        int 21h
 
     inc di
     pop bx
@@ -322,7 +341,7 @@ start:
         call makeIntend
         
         call whatToDo
-
+        ;call shift
         loop @lp
 
         @exit:
