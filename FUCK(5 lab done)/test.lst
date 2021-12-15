@@ -1,0 +1,203 @@
+Microsoft (R) Macro Assembler Version 6.14.8444		    12/15/21 15:33:33
+test.asm						     Page 1 - 1
+
+
+				.model tiny
+				 
+ 0000				.code
+
+				        org     100h
+ 0100				start:
+ 0100  E9 00A2			        jmp     main
+				 
+ 0103				int21h_handler  proc
+ 0103  9C			        pushf
+				        ;проверка вызываемой функции прерывания
+				        ;если не перехватываемая, то вызвать исходный обработчик
+ 0104  80 FC 09			        cmp     ah,     09h
+ 0107  75 57			        jne     OrigInt
+ 0109  FC			        cld 
+				        
+ 010A  88 0E 016A R		        mov shiftValue, cl
+
+ 010E  50			        push ax 
+ 010F  53			        push bx
+ 0110  51			        push cx
+ 0111  52			        push dx
+
+ 0112  8B C6			        mov ax , si
+ 0114  80 3E 016A R 00		        cmp shiftValue , 0
+ 0119  7C 15			jl @minus
+ 011B  02 06 016A R		        add al , shiftValue
+ 011F  3C 7A			        cmp al, 'z'
+ 0121  76 2D			jbe @skipTransfer
+ 0123  2C 7A			        sub al , 7Ah
+ 0125  8A D8			        mov bl , al
+ 0127  B0 61			        mov al , 61h
+ 0129  80 EB 01			        sub bl , 1
+ 012C  02 C3			        add al , bl
+ 012E  EB 20			jmp @skipTransfer
+				 
+ 0130				@minus:
+ 0130  02 06 016A R		        add al , shiftValue
+ 0134  3C 61			        cmp al , 'a'
+ 0136  7C 02			        jl @perenos
+ 0138  EB 16			        jmp @skipTransfer
+ 013A				@perenos:
+ 013A  2A 06 016A R		        sub al , shiftValue
+ 013E  2C 61			        sub al , 'a'
+ 0140  F6 1E 016A R		        neg shiftValue
+ 0144  28 06 016A R		        sub shiftValue , al
+ 0148  B0 7A			        mov al , 'z'
+ 014A  2A 06 016A R		        sub al , shiftValue
+ 014E  04 01			        add al , 1
+				 
+ 0150				@skipTransfer:
+ 0150  33 D2			        xor dx,dx
+ 0152  8A D0			        mov dl , al
+ 0154  B4 02			        mov ah , 02h
+ 0156  CD 21			        int 21h
+ 0158  5A			        pop dx
+ 0159  59			        pop cx
+ 015A  5B			        pop bx
+ 015B  58			        pop ax
+ 015C  9D			        popf
+ 015D  CA 0004			        retf 4
+				        
+ 0160				OrigInt:
+ 0160  9D			        popf
+ 0161  2E: FF 2E 0166 R		        jmp     cs:dword ptr [old_int21h]
+				 
+				        public  old_int21h
+ 0166 00000000			        old_int21h      dd      ?
+
+ 016A 00			        shiftValue db ?
+				        
+ 016B				int21h_handler  endp
+
+ 016B				enterNum proc near
+ 016B  BF 0000			    mov di, 0           
+ 016E  8B 0F			    mov cx, [bx]                                       ;в CX количество введенных символов
+ 0170  32 ED			    xor ch, ch
+ 0172  BE 0001			    mov si, 1                                          ;в SI множитель 
+
+ 0175				    @loopMet:
+ 0175  56			    push si                                            ;сохраняем SI (множитель) в стеке
+ 0176  8B F1			    mov si, cx                                         ;в SI помещаем номер текущего символа 
+ 0178  83 F9 01			    cmp cx,1
+ 017B  74 18			    je @Signed
+ 017D				    @NoSigned:
+ 017D  8B 00			    mov ax, [bx+si]                                    ;в AX помещаем текущий символ 
+ 017F  32 E4			    xor ah, ah
+ 0181  5E			    pop si                                             ;извлекаем множитель (SI) из стека
+ 0182  83 E8 30			    sub ax, 30h                                        ;получаем из символа (AX) цифру
+ 0185  F7 E6			    mul si                                             ;умножаем цифру (AX) на множитель (SI)
+ 0187  03 F8			    add di, ax                                         ;складываем с результирующим числом
+ 0189  8B C6			    mov ax, si                                         ;помещаем множитель (SI) в AX
+ 018B  BA 000A			    mov dx, 10
+ 018E  F7 E2			    mul dx                                             ;увеличиваем множитель (AX) в 10 раз
+ 0190  8B F0			    mov si, ax                                         ;перемещаем множитель (AX) назад в SI
+ 0192  E2 E1			    loop @loopMet                                      ;переходим к предыдущему символу
+ 0194				    @return:
+ 0194  C3			    ret
+ 0195				    @Signed:
+ 0195  52			    push dx
+ 0196  8B 10			    mov dx,[bx+si]
+ 0198  32 F6			    xor dh,dh
+ 019A  80 FA 2D			    cmp dl,'-'
+ 019D  5A			    pop dx
+ 019E  75 DD			    jne @NoSigned
+ 01A0  F7 DF			    neg di
+ 01A2  5E			    pop si
+ 01A3  EB EF			    jmp @return
+ 01A5				enterNum endp
+				 
+ 01A5				main    proc
+				        ;установка обработчика прерывания
+				        ;- получить адрес исходного обработчика
+ 01A5  B8 3521			        mov     ax,     3521h                   ; AH = 35h, AL = номер прерывания
+ 01A8  CD 21			        int     21h                             ; получить адрес обработчика
+ 01AA  89 1E 0166 R		        mov     word ptr [old_int21h],   bx     ; и записать его в old_int21h
+ 01AE  8C 06 0168 R		        mov     word ptr [old_int21h+2], es
+				        ;- записать адрес нового обработчика
+ 01B2  B8 2521			        mov     ax,     2521h                   ; AH = 25h, AL = номер прерывания
+ 01B5  BA 0103 R		        mov     dx,     offset int21h_handler
+ 01B8  8C CB			        mov     bx,     cs
+ 01BA  8E DB			        mov     ds,     bx
+ 01BC  CD 21			        int     21h
+
+				        ;завершение программы
+ 01BE  BA 01A5 R		        mov     dx,     offset main
+ 01C1  CD 27			        int     27h
+ 01C3 0D 0A 50 72 65 73		        msgPressAnyKey  db      0Dh, 0Ah, 'Press any key to exit...', '$'
+       73 20 61 6E 79 20
+       6B 65 79 20 74 6F
+       20 65 78 69 74 2E
+       2E 2E 24
+
+ 01DE				                parM label byte  
+ 01DE 04			        maxlenM db 4    
+ 01DF 00			        actlenM db ?        
+ 01E0  0004 [			        fldM db 4 dup('$')  
+        24
+       ]
+
+ 01E4				main    endp
+				 
+				        end     start
+Microsoft (R) Macro Assembler Version 6.14.8444		    12/15/21 15:33:33
+test.asm						     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+DGROUP . . . . . . . . . . . . .	GROUP
+_TEXT  . . . . . . . . . . . . .	16 Bit	 01E4	  Word	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	16 Bit	 0000	  Word	  Public  'DATA'	
+
+
+Procedures,  parameters and locals:
+
+                N a m e                 Type     Value    Attr
+
+enterNum . . . . . . . . . . . .	P Near	 016B	  _TEXT	Length= 003A Public
+  @loopMet . . . . . . . . . . .	L Near	 0175	  _TEXT	
+  @NoSigned  . . . . . . . . . .	L Near	 017D	  _TEXT	
+  @return  . . . . . . . . . . .	L Near	 0194	  _TEXT	
+  @Signed  . . . . . . . . . . .	L Near	 0195	  _TEXT	
+int21h_handler . . . . . . . . .	P Near	 0103	  _TEXT	Length= 0068 Public
+  @minus . . . . . . . . . . . .	L Near	 0130	  _TEXT	
+  @perenos . . . . . . . . . . .	L Near	 013A	  _TEXT	
+  @skipTransfer  . . . . . . . .	L Near	 0150	  _TEXT	
+  OrigInt  . . . . . . . . . . .	L Near	 0160	  _TEXT	
+main . . . . . . . . . . . . . .	P Near	 01A5	  _TEXT	Length= 003F Public
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 0000h	 
+@DataSize  . . . . . . . . . . .	Number	 0000h	 
+@Interface . . . . . . . . . . .	Number	 0000h	 
+@Model . . . . . . . . . . . . .	Number	 0001h	 
+@code  . . . . . . . . . . . . .	Text   	 DGROUP
+@data  . . . . . . . . . . . . .	Text   	 DGROUP
+@fardata?  . . . . . . . . . . .	Text   	 FAR_BSS
+@fardata . . . . . . . . . . . .	Text   	 FAR_DATA
+@stack . . . . . . . . . . . . .	Text   	 DGROUP
+actlenM  . . . . . . . . . . . .	Byte	 01DF	  _TEXT	
+fldM . . . . . . . . . . . . . .	Byte	 01E0	  _TEXT	
+maxlenM  . . . . . . . . . . . .	Byte	 01DE	  _TEXT	
+msgPressAnyKey . . . . . . . . .	Byte	 01C3	  _TEXT	
+old_int21h . . . . . . . . . . .	DWord	 0166	  _TEXT	Public
+parM . . . . . . . . . . . . . .	Byte	 01DE	  _TEXT	
+shiftValue . . . . . . . . . . .	Byte	 016A	  _TEXT	
+start  . . . . . . . . . . . . .	L Near	 0100	  _TEXT	
+
+	   0 Warnings
+	   0 Errors

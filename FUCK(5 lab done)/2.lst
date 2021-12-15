@@ -1,0 +1,162 @@
+Microsoft (R) Macro Assembler Version 6.14.8444		    12/15/21 15:34:14
+2.asm							     Page 1 - 1
+
+
+				.model tiny
+				 
+ 0000				.code
+				        org 100h
+				 
+ 0100				main    proc
+
+				           
+
+ 0100  50			                push ax 
+ 0101  53			                push bx
+ 0102  52			                push dx
+ 0103  56			                push si
+				                        
+ 0104  8D 16 013B R		                        lea dx, parM
+				                        
+ 0108  B4 0A			                        mov ah, 0Ah
+ 010A  CD 21			                        int 21h
+ 010C  33 DB			                        xor bx,bx
+ 010E  8D 1E 013C R		                        lea bx, parM+1
+				                        
+ 0112  E8 0030			                        call enterNum
+ 0115  33 C0			                        xor ax,ax
+ 0117  8B C7			                        mov ax , di
+ 0119  8B C8			                        mov cx , ax   
+ 011B  5E			                pop si 
+ 011C  5A			                pop dx  
+ 011D  5B			                pop bx 
+ 011E  58			                pop ax
+
+ 011F  B2 0A			                mov dl , 10
+ 0121  B4 02			                mov ah , 02h
+ 0123  CD 21			                int 21H
+ 0125  B2 0D			                mov dl,13
+ 0127  B4 02			                mov ah , 02h
+ 0129  CD 21			                int 21H
+
+ 012B  33 D2			                xor dx,dx
+ 012D  B4 01			        mov ah , 01h    
+ 012F  CD 21			        int 21H  
+
+ 0131  32 E4			        xor ah,ah
+ 0133  8B F0			        mov si , ax
+ 0135  B4 09			        mov     ah,     09h
+				       ; mov cx , 3
+ 0137  CD 21			        int     21h
+				       
+ 0139  CD 20			        int     20h
+
+
+
+ 013B				        parM label byte  
+ 013B 04			        maxlenM db 4    
+ 013C 00			        actlenM db ?        
+ 013D  0004 [			        fldM db 4 dup('$')  
+        24
+       ]
+
+ 0141 20 0D 0A 24		        indent  db ' ', 0Dh, 0Ah, '$'
+
+ 0145				enterNum proc near
+ 0145  BF 0000			    mov di, 0           
+ 0148  8B 0F			    mov cx, [bx]                                       ;в CX количество введенных символов
+ 014A  32 ED			    xor ch, ch
+ 014C  BE 0001			    mov si, 1                                          ;в SI множитель 
+
+ 014F				    @loopMet:
+ 014F  56			    push si                                            ;сохраняем SI (множитель) в стеке
+ 0150  8B F1			    mov si, cx                                         ;в SI помещаем номер текущего символа 
+ 0152  83 F9 01			    cmp cx,1
+ 0155  74 18			    je @Signed
+ 0157				    @NoSigned:
+ 0157  8B 00			    mov ax, [bx+si]                                    ;в AX помещаем текущий символ 
+ 0159  32 E4			    xor ah, ah
+ 015B  5E			    pop si                                             ;извлекаем множитель (SI) из стека
+ 015C  83 E8 30			    sub ax, 30h                                        ;получаем из символа (AX) цифру
+ 015F  F7 E6			    mul si                                             ;умножаем цифру (AX) на множитель (SI)
+ 0161  03 F8			    add di, ax                                         ;складываем с результирующим числом
+ 0163  8B C6			    mov ax, si                                         ;помещаем множитель (SI) в AX
+ 0165  BA 000A			    mov dx, 10
+ 0168  F7 E2			    mul dx                                             ;увеличиваем множитель (AX) в 10 раз
+ 016A  8B F0			    mov si, ax                                         ;перемещаем множитель (AX) назад в SI
+ 016C  E2 E1			    loop @loopMet                                      ;переходим к предыдущему символу
+ 016E				    @return:
+ 016E  C3			    ret
+ 016F				    @Signed:
+ 016F  52			    push dx
+ 0170  8B 10			    mov dx,[bx+si]
+ 0172  32 F6			    xor dh,dh
+ 0174  80 FA 2D			    cmp dl,'-'
+ 0177  5A			    pop dx
+ 0178  75 DD			    jne @NoSigned
+ 017A  F7 DF			    neg di
+ 017C  5E			    pop si
+ 017D  EB EF			    jmp @return
+ 017F				enterNum endp
+				        
+ 017F				makeIntend proc near
+ 017F  8D 16 0141 R		    lea dx, indent
+ 0183  B4 09			    mov ah, 09
+ 0185  CD 21			    int 21h
+ 0187  C3			    ret
+ 0188				makeIntend endp
+
+
+
+ 0188				main    endp
+				 
+				        end     main
+Microsoft (R) Macro Assembler Version 6.14.8444		    12/15/21 15:34:14
+2.asm							     Symbols 2 - 1
+
+
+
+
+Segments and Groups:
+
+                N a m e                 Size     Length   Align   Combine Class
+
+DGROUP . . . . . . . . . . . . .	GROUP
+_TEXT  . . . . . . . . . . . . .	16 Bit	 0188	  Word	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	16 Bit	 0000	  Word	  Public  'DATA'	
+
+
+Procedures,  parameters and locals:
+
+                N a m e                 Type     Value    Attr
+
+enterNum . . . . . . . . . . . .	P Near	 0145	  _TEXT	Length= 003A Public
+  @loopMet . . . . . . . . . . .	L Near	 014F	  _TEXT	
+  @NoSigned  . . . . . . . . . .	L Near	 0157	  _TEXT	
+  @return  . . . . . . . . . . .	L Near	 016E	  _TEXT	
+  @Signed  . . . . . . . . . . .	L Near	 016F	  _TEXT	
+main . . . . . . . . . . . . . .	P Near	 0100	  _TEXT	Length= 0088 Public
+makeIntend . . . . . . . . . . .	P Near	 017F	  _TEXT	Length= 0009 Public
+
+
+Symbols:
+
+                N a m e                 Type     Value    Attr
+
+@CodeSize  . . . . . . . . . . .	Number	 0000h	 
+@DataSize  . . . . . . . . . . .	Number	 0000h	 
+@Interface . . . . . . . . . . .	Number	 0000h	 
+@Model . . . . . . . . . . . . .	Number	 0001h	 
+@code  . . . . . . . . . . . . .	Text   	 DGROUP
+@data  . . . . . . . . . . . . .	Text   	 DGROUP
+@fardata?  . . . . . . . . . . .	Text   	 FAR_BSS
+@fardata . . . . . . . . . . . .	Text   	 FAR_DATA
+@stack . . . . . . . . . . . . .	Text   	 DGROUP
+actlenM  . . . . . . . . . . . .	Byte	 013C	  _TEXT	
+fldM . . . . . . . . . . . . . .	Byte	 013D	  _TEXT	
+indent . . . . . . . . . . . . .	Byte	 0141	  _TEXT	
+maxlenM  . . . . . . . . . . . .	Byte	 013B	  _TEXT	
+parM . . . . . . . . . . . . . .	Byte	 013B	  _TEXT	
+
+	   0 Warnings
+	   0 Errors

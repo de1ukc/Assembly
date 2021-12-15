@@ -81,12 +81,7 @@ pop ax
 ret
 SIntToStr endp
 
-makeIntend proc near
-    lea dx, indent
-    mov ah, 09
-    int 21h
-    ret
-makeIntend endp
+
 
 enterNum proc near
     mov di, 0           
@@ -197,7 +192,10 @@ shift proc far
     inc di
     pop bx
     pop ax
-    iret
+    
+    MOV AL, 20h
+     OUT 20h, AL
+     IRET
 
     @bb:
     pop bx
@@ -206,6 +204,13 @@ shift proc far
     pop di
     jmp @skipTransfer
 shift endp
+
+makeIntend proc near
+    lea dx, indent
+    mov ah, 09
+    int 21h
+    ret
+makeIntend endp
 
 withoutShift proc far
 push ax
@@ -220,7 +225,9 @@ push ax
 
     inc di
     pop ax
-    iret
+    MOV AL, 20h
+     OUT 20h, AL
+     IRET
 withoutShift endp
 
 whatToDo proc near
@@ -329,6 +336,7 @@ shiftOFF endp
 start:
     mov ax,@data
     mov ds,ax
+        call shiftOn
         lea di , output ; не трогать, потому что в shift я итерируюсь по di 
         mov cx , 100
        
@@ -341,6 +349,7 @@ start:
         call makeIntend
         
         call whatToDo
+       ; call shift
         ;call shift
         loop @lp
 
@@ -363,3 +372,5 @@ end start
 
 ; Сначала вводим MYPROGRAM 
 ; потом уже символы
+; int 21h 06h    - консоль input output
+;int 21h
