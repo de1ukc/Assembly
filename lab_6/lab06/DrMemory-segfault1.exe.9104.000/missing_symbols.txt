@@ -1,0 +1,2 @@
+C:\Windows\SYSTEM32\apphelp.dll
+C:\Windows\SYSTEM32\ntdll.dll

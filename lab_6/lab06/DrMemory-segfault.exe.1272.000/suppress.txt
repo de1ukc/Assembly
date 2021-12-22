@@ -1,0 +1,28 @@
+# File for suppressing errors found in pid 1272: "segfault.exe"
+
+# Suppression for Error #1
+LEAK
+name=Error #1 (update to meaningful name)
+drmemorylib.dll!replace_malloc
+msvcrt.dll!_strdup
+segfault.exe!.text
+segfault.exe!__mingw_glob
+segfault.exe!_setargv
+segfault.exe!.text
+segfault.exe!mainCRTStartup
+ntdll.dll!RtlGetAppContainerNamedObjectPath
+ntdll.dll!RtlGetAppContainerNamedObjectPath
+
+## Mod+offs-style suppression for Error #1:
+LEAK
+name=Error #1 (update to meaningful name)
+<drmemorylib.dll+0x235a0>
+<msvcrt.dll+0x868a5>
+<segfault.exe+0x2d25>
+<segfault.exe+0x3042>
+<segfault.exe+0x1796>
+<segfault.exe+0x1202>
+<segfault.exe+0x12f5>
+<ntdll.dll+0x67a9e>
+<ntdll.dll+0x67a6e>
+

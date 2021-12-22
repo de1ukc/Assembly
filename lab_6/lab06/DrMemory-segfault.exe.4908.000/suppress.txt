@@ -1,0 +1,12 @@
+# File for suppressing errors found in pid 4908: "segfault.exe"
+
+# Suppression for Error #1
+WARNING
+name=Error #1 (update to meaningful name)
+segfault.exe!main
+
+## Mod+offs-style suppression for Error #1:
+WARNING
+name=Error #1 (update to meaningful name)
+<segfault.exe+0x147e>
+

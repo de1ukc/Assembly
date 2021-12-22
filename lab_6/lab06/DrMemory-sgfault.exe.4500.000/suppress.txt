@@ -1,0 +1,28 @@
+# File for suppressing errors found in pid 4500: "sgfault.exe"
+
+# Suppression for Error #1
+LEAK
+name=Error #1 (update to meaningful name)
+drmemorylib.dll!replace_malloc
+msvcrt.dll!_strdup
+sgfault.exe!.text
+sgfault.exe!__mingw_glob
+sgfault.exe!_setargv
+sgfault.exe!.text
+sgfault.exe!mainCRTStartup
+ntdll.dll!RtlGetAppContainerNamedObjectPath
+ntdll.dll!RtlGetAppContainerNamedObjectPath
+
+## Mod+offs-style suppression for Error #1:
+LEAK
+name=Error #1 (update to meaningful name)
+<drmemorylib.dll+0x235a0>
+<msvcrt.dll+0x868a5>
+<sgfault.exe+0x2d25>
+<sgfault.exe+0x3042>
+<sgfault.exe+0x1796>
+<sgfault.exe+0x1202>
+<sgfault.exe+0x12f5>
+<ntdll.dll+0x67a9e>
+<ntdll.dll+0x67a6e>
+

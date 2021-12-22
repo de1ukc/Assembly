@@ -1,0 +1,77 @@
+Dr. Memory version 2.5.0 build 0 built on Oct 18 2021 03:10:43
+start time: 3689991:55:56.271 == 15:55:56.271 12/14/2021
+Recorded 124 suppression(s) from default D:\DoctorMemorry\bin\suppress-default.txt
+Syscall mismatch detected.  Running on unknown kernel version!
+System call information is missing for this operating system: WinVer=105;Rel=2009;Build=19042;Edition=Enterprise.
+new thread #0 id=25056
+
+module load event: "segfault.exe" 0x00400000-0x00411000 modid: 1 D:\ВУЗ\2 курс\1 сем\Assembler\lab06\segfault.exe
+
+module load event: "dynamorio.dll" 0x637c0000-0x63931000 modid: 2 D:\DoctorMemorry\dynamorio\lib32\release\dynamorio.dll
+
+module load event: "libgcc_s_dw2-1.dll" 0x6eb40000-0x6ec1d000 modid: 3 C:\MinGW\bin\libgcc_s_dw2-1.dll
+
+module load event: "drmemorylib.dll" 0x73800000-0x73a4b000 modid: 4 D:\DoctorMemorry\bin\release\drmemorylib.dll
+
+module load event: "msvcrt.dll" 0x75a60000-0x75b1f000 modid: 5 C:\Windows\System32\msvcrt.dll
+WARNING: new/delete has no local wrapper => disabling mismatch detection for msvcrt.dll
+WARNING: new/delete has no local wrapper => disabling mismatch detection for msvcrt.dll
+WARNING: new/delete has no local wrapper => disabling mismatch detection for msvcrt.dll
+WARNING: new == new[] => disabling mismatch detection for msvcrt.dll
+WARNING: new/delete has no local wrapper => disabling mismatch detection for msvcrt.dll
+WARNING: new/delete has no local wrapper => disabling mismatch detection for msvcrt.dll
+
+module load event: "KERNELBASE.dll" 0x75b20000-0x75d34000 modid: 6 C:\Windows\System32\KERNELBASE.dll
+
+module load event: "KERNEL32.dll" 0x76f00000-0x76ff0000 modid: 7 C:\Windows\System32\KERNEL32.DLL
+
+module load event: "ntdll.dll" 0x77370000-0x77513000 modid: 8 C:\Windows\SYSTEM32\ntdll.dll
+WARNING: unable to load symbols for C:\Windows\SYSTEM32\ntdll.dll
+WARNING: unhandled system calls found
+
+Error #1: LEAK 2 direct bytes 0x01440c90-0x01440c92 + 0 indirect bytes
+# 0 replace_malloc  [d:\a\drmemory\drmemory\common\alloc_replace.c:2580] (0x738235a0 <drmemorylib.dll+0x235a0>) modid:4
+# 1 msvcrt.dll!_strdup    (0x75ae68a5 <msvcrt.dll+0x868a5>) modid:5
+# 2 .text        [../../../src/gcc-6.3.0/libgcc/config/i386/cygwin.S:184] (0x00402d25 <segfault.exe+0x2d25>) modid:1
+# 3 __mingw_glob [../../../src/gcc-6.3.0/libgcc/config/i386/cygwin.S:184] (0x00403042 <segfault.exe+0x3042>) modid:1
+# 4 _setargv     [D:\���\2 ����\1 ���\Assembler\lab06/segfault_ex.cpp:6] (0x00401796 <segfault.exe+0x1796>) modid:1
+# 5 .text        (0x00401202 <segfault.exe+0x1202>) modid:1
+# 6 mainCRTStartup (0x004012f5 <segfault.exe+0x12f5>) modid:1
+# 7 ntdll.dll!RtlGetAppContainerNamedObjectPath (0x773d7a9e <ntdll.dll+0x67a9e>) modid:8
+# 8 ntdll.dll!RtlGetAppContainerNamedObjectPath (0x773d7a6e <ntdll.dll+0x67a6e>) modid:8
+	error end
+
+DUPLICATE ERROR COUNTS:
+
+SUPPRESSIONS USED:
+	     1x: default i#1324 mingw runtime
+
+ERRORS FOUND:
+      0 unique,     0 total unaddressable access(es)
+      0 unique,     0 total uninitialized access(es)
+      0 unique,     0 total invalid heap argument(s)
+      0 unique,     0 total GDI usage error(s)
+      0 unique,     0 total handle leak(s)
+      0 unique,     0 total warning(s)
+      1 unique,     1 total,      2 byte(s) of leak(s)
+      0 unique,     0 total,      0 byte(s) of possible leak(s)
+ERRORS IGNORED:
+     75 ignored assumed-innocuous system leak(s)
+      6 unique,     6 total,    305 byte(s) of still-reachable allocation(s)
+         (re-run with "-show_reachable" for details)
+Details: D:\ВУЗ\2 курс\1 сем\Assembler\lab06\DrMemory-segfault.exe.1272.000\results.txt
+
+DUPLICATE POTENTIAL ERROR COUNTS:
+
+POTENTIAL ERRORS FOUND:
+      0 unique,     0 total potential unaddressable access(es)
+      0 unique,     0 total potential uninitialized access(es)
+      0 unique,     0 total potential invalid heap argument(s)
+      0 unique,     0 total potential GDI usage error(s)
+      0 unique,     0 total potential handle leak(s)
+      0 unique,     0 total potential warning(s)
+      0 unique,     0 total,      0 byte(s) of potential leak(s)
+      0 unique,     0 total,      0 byte(s) of potential possible leak(s)
+Details: D:\ВУЗ\2 курс\1 сем\Assembler\lab06\DrMemory-segfault.exe.1272.000\potential_errors.txt
+Exiting @0:00:01.900 in thread 25056
+LOG END

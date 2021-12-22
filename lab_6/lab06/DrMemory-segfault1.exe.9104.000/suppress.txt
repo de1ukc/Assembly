@@ -1,0 +1,28 @@
+# File for suppressing errors found in pid 9104: "segfault1.exe"
+
+# Suppression for Error #1
+LEAK
+name=Error #1 (update to meaningful name)
+drmemorylib.dll!replace_malloc
+msvcrt.dll!_strdup
+segfault1.exe!.text
+segfault1.exe!__mingw_glob
+segfault1.exe!_setargv
+segfault1.exe!.text
+segfault1.exe!mainCRTStartup
+ntdll.dll!RtlGetAppContainerNamedObjectPath
+ntdll.dll!RtlGetAppContainerNamedObjectPath
+
+## Mod+offs-style suppression for Error #1:
+LEAK
+name=Error #1 (update to meaningful name)
+<drmemorylib.dll+0x235a0>
+<msvcrt.dll+0x868a5>
+<segfault1.exe+0x2d25>
+<segfault1.exe+0x3042>
+<segfault1.exe+0x1796>
+<segfault1.exe+0x1202>
+<segfault1.exe+0x12f5>
+<ntdll.dll+0x67a9e>
+<ntdll.dll+0x67a6e>
+

@@ -1,0 +1,11 @@
+Dr. Memory version 2.5.0 build 0 built on Oct 18 2021 03:10:43
+Windows version: WinVer=105;Rel=2009;Build=19042;Edition=Enterprise
+Dr. Memory results for pid 4908: "segfault.exe"
+Application cmdline: "segfault.exe"
+Recorded 124 suppression(s) from default D:\DoctorMemorry\bin\suppress-default.txt
+System call information is missing for this operating system: WinVer=105;Rel=2009;Build=19042;Edition=Enterprise.
+
+Error #1: WARNING: writing to readonly memory 0x00620000-0x00620004
+# 0 main               [D:\ÂÓÇ\2 êóğñ\1 ñåì\Assembler\lab06/segfault_ex.cpp:4]
+Note: @0:00:06.642 in thread 33180
+Note: instruction: mov    %edx -> 0x0c(%esp,%eax,4)
